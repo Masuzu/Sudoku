@@ -83,44 +83,26 @@ bool SudokuGrid::CheckValue(unsigned int row, unsigned int column)
 
 bool SudokuGrid::Backtrack(unsigned int current_row, unsigned int current_column)
 {
-	if (cells_[current_row][current_column])
-	{
-		if (current_column == 8)
-		{
-			if (current_row == 8)	// Solution found
-				return true;
-			else
-				return Backtrack(current_row + 1, 0);
-		}
-		else
-			return Backtrack(current_row, current_column + 1);
-	}
-	for (int value = 1; value < 10; ++value)
+	for (int value = 1; value < 10; ++value, ++num_iterations_)
 	{
 		cells_[current_row][current_column] = value;
 		if (!CheckValue(current_row, current_column))
 			continue;
 		else
 		{
-			if (current_column == 8)
+			// Find the next cell which contains a '0'
+			unsigned int next_row = (current_row * 9 + current_column + 1) / 9;
+			unsigned int next_column = (current_row * 9 + current_column + 1) % 9;
+			while (cells_[next_row][next_column])
 			{
-				if (current_row == 8)	// Solution found
-					return true;
-				else
-				{
-					if (!Backtrack(current_row + 1, 0))
-						continue;
-					else
-						return true;
-				}
+				unsigned int next_index = (next_row * 9 + next_column + 1);
+				next_row = next_index / 9;
+				next_column = next_index % 9;
+				if (next_row == 9)
+					return true;	// Solution found
 			}
-			else
-			{
-				if (!Backtrack(current_row, current_column + 1))
-					continue;
-				else
-					return true;
-			}
+			if (Backtrack(next_row, next_column))
+				return true;
 		}
 	}
 	cells_[current_row][current_column] = 0;
@@ -129,7 +111,18 @@ bool SudokuGrid::Backtrack(unsigned int current_row, unsigned int current_column
 
 void SudokuGrid::Solve()
 {
-	Backtrack(0, 0);
+	num_iterations_ = 0;
+	unsigned int next_row = 0;
+	unsigned int next_column = 0;
+	while (cells_[next_row][next_column])
+	{
+		unsigned int next_index = (next_row * 9 + next_column + 1);
+		next_row = next_index / 9;
+		next_column = next_index % 9;
+		if (next_row == 9)
+			return;	// Solution found
+	}
+	Backtrack(next_row, next_column);
 }
 
 void SudokuGrid::Print()

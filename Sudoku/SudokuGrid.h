@@ -7,6 +7,7 @@ class SudokuGrid
 {
 private:
 	int cells_[9][9];
+	unsigned int num_iterations_;
 	bool CheckRow(unsigned int row);
 	bool CheckColumn(unsigned int column);
 	bool CheckSquare(unsigned int i, unsigned int j);
@@ -20,6 +21,8 @@ public:
 	bool CheckValue(unsigned int row, unsigned int column);
 	void Solve();
 	void Print();
+
+	inline unsigned int num_iterations()	{ return num_iterations_; }
 };
 
 #endif

@@ -16,6 +16,7 @@ int main()
 	grid.SetRow(8, { 5, 7, 9, 0, 6, 8, 0, 3, 2 });
 	grid.Solve();
 	grid.Print();
+	std::cout << "Number of iterations: " << grid.num_iterations() << std::endl;
 	system("pause");
 
 }
