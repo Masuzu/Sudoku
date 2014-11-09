@@ -83,7 +83,8 @@ bool SudokuGrid::CheckValue(unsigned int row, unsigned int column)
 
 bool SudokuGrid::Backtrack(unsigned int current_row, unsigned int current_column)
 {
-	for (int value = 1; value < 10; ++value, ++num_iterations_)
+	++num_iterations_;
+	for (int value = 1; value < 10; ++value)
 	{
 		cells_[current_row][current_column] = value;
 		if (!CheckValue(current_row, current_column))
@@ -91,15 +92,19 @@ bool SudokuGrid::Backtrack(unsigned int current_row, unsigned int current_column
 		else
 		{
 			// Find the next cell which contains a '0'
-			unsigned int next_row = (current_row * 9 + current_column + 1) / 9;
-			unsigned int next_column = (current_row * 9 + current_column + 1) % 9;
+			unsigned int next_index = current_row * 9 + current_column + 1;
+			if (next_index >= 81)
+				return true;	// Solution found
+			unsigned int next_row = next_index / 9;
+			unsigned int next_column = next_index % 9;
 			while (cells_[next_row][next_column])
 			{
-				unsigned int next_index = (next_row * 9 + next_column + 1);
+				next_index = next_row * 9 + next_column + 1;
+				if (next_index >= 81)
+					return true;	// Solution found
 				next_row = next_index / 9;
 				next_column = next_index % 9;
-				if (next_row == 9)
-					return true;	// Solution found
+				
 			}
 			if (Backtrack(next_row, next_column))
 				return true;
@@ -109,18 +114,41 @@ bool SudokuGrid::Backtrack(unsigned int current_row, unsigned int current_column
 	return false;
 }
 
+bool SudokuGrid::CheckGrid()
+{
+	for (int i = 0; i < 9; ++i)
+	{
+		if (!CheckRow(i))
+			return false;
+		if (!CheckColumn(i))
+			return false;
+	}
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			if (!CheckSquare(i, j))
+				return false;
+	}
+	return true;
+}
+
 void SudokuGrid::Solve()
 {
+	if (!CheckGrid())
+	{
+		std::cout << "Invalid grid" << std::endl;
+		return;
+	}
 	num_iterations_ = 0;
 	unsigned int next_row = 0;
 	unsigned int next_column = 0;
 	while (cells_[next_row][next_column])
 	{
 		unsigned int next_index = (next_row * 9 + next_column + 1);
+		if (next_index == 81)
+			return;	// Solution found
 		next_row = next_index / 9;
 		next_column = next_index % 9;
-		if (next_row == 9)
-			return;	// Solution found
 	}
 	Backtrack(next_row, next_column);
 }

@@ -12,6 +12,7 @@ private:
 	bool CheckColumn(unsigned int column);
 	bool CheckSquare(unsigned int i, unsigned int j);
 	bool Backtrack(unsigned int current_row, unsigned int current_column);
+	bool CheckGrid();
 
 public:
 	SudokuGrid();
