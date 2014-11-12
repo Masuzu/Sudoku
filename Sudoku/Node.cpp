@@ -2,9 +2,10 @@
 
 #include <iostream>
 
-Node::Node(ColumnHeaderNode *header_node) : header_node_(header_node)
+Node::Node(Node *row_header_node, ColumnHeaderNode *column_header_node)
+	: row_header_node_(row_header_node), header_node_(column_header_node)
 {
-	++header_node_->num_cells_in_column_;
+
 }
 
 Node::~Node()
@@ -33,7 +34,6 @@ void Node::AddNodeDown(Node *node)
 
 void Node::RemoveFromColumn()
 {
-	--header_node_->num_cells_in_column_;
 	if (up_)
 		up_->down_ = down_;
 	if (down_)
@@ -42,32 +42,100 @@ void Node::RemoveFromColumn()
 
 void Node::InsertBackInColumn()
 {
-	++header_node_->num_cells_in_column_;
 	if (up_)
 		up_->down_ = this;
 	if (down_)
 		down_->up_ = this;
 }
 
-void Node::PrintRow()
+void ColumnHeaderNode::Cover()
 {
-	if (left_)
+	is_covered_ = true;
+	// Go through the nodes in the column and remove them
+	Node *node = down_;
+	while (node)
 	{
-		int num_blanks = header_node_->column_index() - left_->header_node_->column_index();
-		for (int i = 0; i < num_blanks*2-1; ++i)
-			std::cout << "=";
+		node->RemoveFromColumn();
+		// Go through the nodes in the same row as 'node' and remove them from their column
+		Node *row_node = node->right();
+		while (row_node)
+		{
+			row_node->RemoveFromColumn();
+			row_node = row_node->right();
+		}
+		node = node->down();
 	}
-	std::cout << "#";
-	if (right_)
-		right_->PrintRow();
+	// Remove this column header node from the header node row
+	reinterpret_cast<ColumnHeaderNode*>(left_)->right_ = right_;
+	reinterpret_cast<ColumnHeaderNode*>(right_)->left_ = left_;
 }
 
-void ColumnHeaderNode::PrintRow()
+ConstraintMatrix::ConstraintMatrix(unsigned int num_rows, unsigned int num_columns)
 {
-	std::cout << num_cells_in_column_;
-	if (right_)
+	if (!num_rows || !num_columns)
+		exit(-1);
+	// Create rows
+	row_header_nodes_ = new Node*[num_rows];
+	root_row_header_node = new Node();
+	row_header_nodes_[0] = new Node();
+	root_row_header_node->AddNodeDown(row_header_nodes_[0]);
+	for (int row = 1; row < num_rows; ++row)
 	{
-		std::cout << "=";
-		right_->PrintRow();
+		row_header_nodes_[row] = new Node();
+		row_header_nodes_[row - 1]->AddNodeDown(row_header_nodes_[row]);
+	}
+
+	// Create columns
+	column_header_nodes_ = new ColumnHeaderNode*[num_columns];
+	root_column_header_node = new Node();
+	column_header_nodes_[0] = new ColumnHeaderNode(0);
+	root_column_header_node->AddNodeToRight(column_header_nodes_[0]);
+	for (int column = 1; column < num_columns; ++column)
+	{
+		column_header_nodes_[column] = new ColumnHeaderNode(column);
+		column_header_nodes_[column - 1]->AddNodeToRight(column_header_nodes_[column]);
+	}
+}
+
+void ConstraintMatrix::Print()
+{
+	if (!root_column_header_node->right())	// There are no columns
+		return;
+	// Go through the rows of the constraint matrix
+	Node *row_header_node = root_row_header_node->down();
+	while (row_header_node)
+	{
+		// Go through the nodes in the row labeled by 'row_node'
+		Node *node = row_header_node->right();
+		ColumnHeaderNode *column_header_node = reinterpret_cast<ColumnHeaderNode*>(root_column_header_node->right());
+		while (column_header_node)
+		{
+			if (node)
+			{
+				while (node->header_node()->column_index() < column_header_node->column_index())
+					node = node->right();
+				if (node->header_node()->column_index() == column_header_node->column_index())
+				{
+					node = node->right();
+					if (!column_header_node->is_covered())
+						std::cout << "*";
+				}
+				else if(!column_header_node->is_covered())
+					std::cout << "=";
+			}
+			else if (!column_header_node->is_covered())
+				std::cout << "=";
+			
+			column_header_node = reinterpret_cast<ColumnHeaderNode*>(column_header_node->right());
+		}
+		while (column_header_node)
+		{
+			if (!column_header_node->is_covered())
+				std::cout << "=";	// Add '=' symbols until the last non-covered column is reached
+			column_header_node = reinterpret_cast<ColumnHeaderNode*>(column_header_node->right());
+		}
+
+		std::cout << std::endl;
+		row_header_node = row_header_node->down();
 	}
 }

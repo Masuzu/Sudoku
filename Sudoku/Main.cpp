@@ -5,11 +5,10 @@
 
 int main()
 {
-	ColumnHeaderNode **latin_square_column_header = new ColumnHeaderNode*[12];
-	for (int i = 0; i < 12; ++i)
-		latin_square_column_header[i] = new ColumnHeaderNode(i);
-	for (int i = 0; i < 11; ++i)
-		latin_square_column_header[i]->AddNodeToRight(latin_square_column_header[i + 1]);
+	// For a 2x2 grid, each cell can be filled with either '1' or '2', hence a total of 2*2*2 possible cell values.
+	ConstraintMatrix *constraint_matrix = new ConstraintMatrix(8, 12);
+	Node **row_header_nodes = constraint_matrix->row_header_nodes();
+	ColumnHeaderNode **column_header_nodes = constraint_matrix->column_header_nodes();
 
 	for (int row = 0; row < 2; ++row)
 	{
@@ -17,31 +16,41 @@ int main()
 		{
 			for (int number = 0; number < 2; ++number)
 			{
+				int row_index = row * 4 + column * 2 + number;	// Index of the row being initialized in the constraint matrix
 				// See http://garethrees.org/2007/06/10/zendoku-generation/#section-4.1 Figure 2
-				// Constraint1: one number in the column 'column' and row 'row'
-				Node *node_constraint_1 = new Node(latin_square_column_header[column * 2 + row]);
-				latin_square_column_header[column * 2 + row]->AddNodeDown(node_constraint_1);
+				// Constraint1: one number in 'column' and 'row'
+				Node *node_constraint_1 = new Node(row_header_nodes[row_index], column_header_nodes[column * 2 + row]);
+				row_header_nodes[row_index]->AddNodeToRight(node_constraint_1);
+				// Add the node in a new row.
+				Node *down_most_node = column_header_nodes[column * 2 + row];
+				while (down_most_node->down())
+					down_most_node = down_most_node->down();
+				down_most_node->AddNodeDown(node_constraint_1);
 
-				// Constraint2: the number 'number' must appear in row 'row'
-				Node *node_constraint_2 = new Node(latin_square_column_header[number * 2 + row + 4]);
-				latin_square_column_header[number * 2 + row + 4]->AddNodeDown(node_constraint_2);
+				// Constraint2: 'number' must appear in 'row'
+				Node *node_constraint_2 = new Node(row_header_nodes[row_index], column_header_nodes[number * 2 + row + 4]);
+				down_most_node = column_header_nodes[number * 2 + row + 4];
+				while (down_most_node->down())
+					down_most_node = down_most_node->down();
+				down_most_node->AddNodeDown(node_constraint_2);
 				node_constraint_1->AddNodeToRight(node_constraint_2);
 
-				// Constraint3: the number 'number' must appear in column 'column'
-				Node *node_constraint_3 = new Node(latin_square_column_header[number * 2 + column + 8]);
-				latin_square_column_header[number * 2 + column + 8]->AddNodeDown(node_constraint_3);
+				// Constraint3: 'number' must appear in 'column'
+				Node *node_constraint_3 = new Node(row_header_nodes[row_index], column_header_nodes[number * 2 + column + 8]);
+				down_most_node = column_header_nodes[number * 2 + column + 8];
+				while (down_most_node->down())
+					down_most_node = down_most_node->down();
+				down_most_node->AddNodeDown(node_constraint_3);
 				node_constraint_2->AddNodeToRight(node_constraint_3);
 			}
 		}
 	}
 
-	latin_square_column_header[0]->PrintRow();
-	std::cout << std::endl;
-	for (int i = 0; i < 12; ++i)
-	{
-		latin_square_column_header[i]->down()->PrintRow();
-		std::cout << std::endl;
-	}
+	constraint_matrix->Print();
+	std::cout << "cover columns 0 and 4\n";
+	column_header_nodes[0]->Cover();
+	column_header_nodes[4]->Cover();
+	constraint_matrix->Print();
 
 	SudokuGrid grid;
 #if 0
