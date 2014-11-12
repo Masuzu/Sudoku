@@ -48,8 +48,14 @@ int main()
 
 	constraint_matrix->Print();
 	std::cout << "cover columns 0 and 4\n";
-	column_header_nodes[0]->Cover();
+
+	column_header_nodes[2]->Cover();
 	column_header_nodes[4]->Cover();
+	constraint_matrix->Print();
+
+	std::cout << "cover columns 4 and 2\n";
+	column_header_nodes[4]->Uncover();
+	column_header_nodes[2]->Uncover();
 	constraint_matrix->Print();
 
 	SudokuGrid grid;

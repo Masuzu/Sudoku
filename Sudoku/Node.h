@@ -31,6 +31,7 @@ public:
 	// Updates the nodes up and down and increments header_node_->num_cells_in_column_
 	void InsertBackInColumn();
 	inline ColumnHeaderNode *header_node()	{ return header_node_; }
+	inline Node *row_header_node()	{ return row_header_node_; }
 };
 
 // Column headers label the columns of the constraint matrix reprensenting an exact cover problem.
@@ -53,7 +54,6 @@ public:
 
 class ConstraintMatrix
 {
-	friend class ColumnHeaderNode;
 private:
 	// Column header nodes are added right of root_column_header_node
 	Node *root_column_header_node;

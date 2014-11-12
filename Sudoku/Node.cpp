@@ -55,12 +55,12 @@ void ColumnHeaderNode::Cover()
 	Node *node = down_;
 	while (node)
 	{
-		node->RemoveFromColumn();
 		// Go through the nodes in the same row as 'node' and remove them from their column
-		Node *row_node = node->right();
+		Node *row_node = node->row_header_node()->right();
 		while (row_node)
 		{
-			row_node->RemoveFromColumn();
+			if (row_node != node)
+				row_node->RemoveFromColumn();
 			row_node = row_node->right();
 		}
 		node = node->down();
@@ -68,6 +68,28 @@ void ColumnHeaderNode::Cover()
 	// Remove this column header node from the header node row
 	reinterpret_cast<ColumnHeaderNode*>(left_)->right_ = right_;
 	reinterpret_cast<ColumnHeaderNode*>(right_)->left_ = left_;
+}
+
+void ColumnHeaderNode::Uncover()
+{
+	is_covered_ = false;
+	// Go through the nodes in the column and remove them
+	Node *node = down_;
+	while (node)
+	{
+		// Go through the nodes in the same row as 'node' and remove them from their column
+		Node *row_node = node->row_header_node()->right();
+		while (row_node)
+		{
+			if (row_node != node)
+				row_node->InsertBackInColumn();
+			row_node = row_node->right();
+		}
+		node = node->down();
+	}
+	// Remove this column header node from the header node row
+	reinterpret_cast<ColumnHeaderNode*>(left_)->right_ = this;
+	reinterpret_cast<ColumnHeaderNode*>(right_)->left_ = this;
 }
 
 ConstraintMatrix::ConstraintMatrix(unsigned int num_rows, unsigned int num_columns)
