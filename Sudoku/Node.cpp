@@ -184,6 +184,7 @@ void ConstraintMatrix::RemoveRow(unsigned int row)
 
 bool ConstraintMatrix::Backtrack(std::vector<int> &solution)
 {
+	++num_iterations_;
 	if (ExactCoverFound())
 		return true;
 	// Get the column with the least rows
@@ -215,6 +216,11 @@ bool ConstraintMatrix::Backtrack(std::vector<int> &solution)
 		{
 			if (Backtrack(solution))
 				return true;
+			else
+			{
+				solution.pop_back();
+				InsertBackRow(row_index);
+			}
 		}
 		node = node->down();
 	}

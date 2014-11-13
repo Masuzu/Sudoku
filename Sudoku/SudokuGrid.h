@@ -21,6 +21,7 @@ public:
 	int Get(unsigned int row, unsigned int column);
 	bool CheckValue(unsigned int row, unsigned int column);
 	void Solve();
+	void SolveWithDLX();
 	void Print();
 
 	inline unsigned int num_iterations()	{ return num_iterations_; }

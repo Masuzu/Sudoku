@@ -3,8 +3,11 @@
 
 #include <iostream>
 
+//#define __EASY_GRID__
+
 int main()
 {
+#ifdef __2_2_GRID__
 	// For a 2x2 grid, each cell can be filled with either '1' or '2', hence a total of 2*2*2 possible cell values.
 	ConstraintMatrix *constraint_matrix = new ConstraintMatrix(8, 12);
 	RowHeaderNode **row_header_nodes = constraint_matrix->row_header_nodes();
@@ -47,13 +50,39 @@ int main()
 
 	constraint_matrix->Print();
 
-	std::vector<int> solution;
 	std::vector<std::vector<int>> solutions;
 	constraint_matrix->ExactCover(solutions);
+#endif
 
-	std::cout << constraint_matrix->IsCandidateSolution() << " " << constraint_matrix->ExactCoverFound() << std::endl;
+	SudokuGrid grid_DLX;
+#ifdef __EASY_GRID__
+	grid_DLX.SetRow(0, { 4, 9, 8, 0, 0, 0, 6, 2, 0 });
+	grid_DLX.SetRow(1, { 7, 0, 5, 0, 3, 0, 4, 0, 8 });
+	grid_DLX.SetRow(2, { 3, 0, 6, 8, 0, 0, 0, 0, 5 });
+	grid_DLX.SetRow(3, { 0, 0, 0, 0, 7, 0, 8, 0, 0 });
+	grid_DLX.SetRow(4, { 0, 3, 0, 0, 8, 9, 2, 5, 0 });
+	grid_DLX.SetRow(5, { 0, 8, 0, 6, 0, 5, 0, 0, 1 });
+	grid_DLX.SetRow(6, { 0, 6, 3, 5, 1, 0, 0, 0, 0 });
+	grid_DLX.SetRow(7, { 2, 4, 0, 0, 0, 0, 0, 8, 6 });
+	grid_DLX.SetRow(8, { 5, 7, 9, 0, 6, 8, 0, 3, 2 });
+#else
+	grid_DLX.SetRow(0, { 0, 3, 0, 6, 0, 5, 0, 0, 0 });
+	grid_DLX.SetRow(1, { 6, 0, 0, 0, 9, 0, 0, 0, 2 });
+	grid_DLX.SetRow(2, { 0, 7, 0, 1, 0, 0, 0, 0, 6 });
+	grid_DLX.SetRow(3, { 0, 9, 0, 0, 0, 0, 0, 0, 0 });
+	grid_DLX.SetRow(4, { 8, 1, 0, 0, 5, 0, 0, 6, 9 });
+	grid_DLX.SetRow(5, { 0, 0, 0, 0, 0, 0, 0, 8, 0 });
+	grid_DLX.SetRow(6, { 4, 0, 0, 0, 0, 3, 0, 2, 0 });
+	grid_DLX.SetRow(7, { 9, 0, 0, 0, 2, 0, 0, 0, 5 });
+	grid_DLX.SetRow(8, { 0, 0, 0, 9, 0, 8, 0, 3, 0 });
+#endif
+
+	grid_DLX.SolveWithDLX();
+	grid_DLX.Print();
+	std::cout << "Number of iterations (DLX): " << grid_DLX.num_iterations() << std::endl;
+
 	SudokuGrid grid;
-#if 0
+#ifdef __EASY_GRID__
 	grid.SetRow(0, { 4, 9, 8, 0, 0, 0, 6, 2, 0 });
 	grid.SetRow(1, { 7, 0, 5, 0, 3, 0, 4, 0, 8 });
 	grid.SetRow(2, { 3, 0, 6, 8, 0, 0, 0, 0, 5 });
@@ -63,7 +92,7 @@ int main()
 	grid.SetRow(6, { 0, 6, 3, 5, 1, 0, 0, 0, 0 });
 	grid.SetRow(7, { 2, 4, 0, 0, 0, 0, 0, 8, 6 });
 	grid.SetRow(8, { 5, 7, 9, 0, 6, 8, 0, 3, 2 });
-#endif
+#else
 	grid.SetRow(0, { 0, 3, 0, 6, 0, 5, 0, 0, 0 });
 	grid.SetRow(1, { 6, 0, 0, 0, 9, 0, 0, 0, 2 });
 	grid.SetRow(2, { 0, 7, 0, 1, 0, 0, 0, 0, 6 });
@@ -73,10 +102,11 @@ int main()
 	grid.SetRow(6, { 4, 0, 0, 0, 0, 3, 0, 2, 0 });
 	grid.SetRow(7, { 9, 0, 0, 0, 2, 0, 0, 0, 5 });
 	grid.SetRow(8, { 0, 0, 0, 9, 0, 8, 0, 3, 0 });
+#endif
 
 	grid.Solve();
 	grid.Print();
-	std::cout << "Number of iterations: " << grid.num_iterations() << std::endl;
+	std::cout << "Number of iterations (naive backtracking): " << grid.num_iterations() << std::endl;
 	system("pause");
 
 }

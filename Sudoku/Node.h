@@ -79,6 +79,8 @@ private:
 	Node *root_row_header_node;
 	// row_header_nodes_[i] points to the first node in the row i of the constraint matrix representing the exact cover problem
 	RowHeaderNode **row_header_nodes_;
+	int num_iterations_ = 0;
+
 	bool Backtrack(std::vector<int> &solution);
 	void Backtrack(std::vector<int> &solution, std::vector<std::vector<int>> &solutions);
 
@@ -95,6 +97,7 @@ public:
 
 	inline ColumnHeaderNode **column_header_nodes()	{ return column_header_nodes_; }
 	inline RowHeaderNode **row_header_nodes()	{ return row_header_nodes_; }
+	inline int num_iterations()	{ return num_iterations_; }
 };
 
 #endif
