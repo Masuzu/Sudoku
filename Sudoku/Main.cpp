@@ -7,9 +7,15 @@ int main()
 {
 	// For a 2x2 grid, each cell can be filled with either '1' or '2', hence a total of 2*2*2 possible cell values.
 	ConstraintMatrix *constraint_matrix = new ConstraintMatrix(8, 12);
-	Node **row_header_nodes = constraint_matrix->row_header_nodes();
+	RowHeaderNode **row_header_nodes = constraint_matrix->row_header_nodes();
 	ColumnHeaderNode **column_header_nodes = constraint_matrix->column_header_nodes();
+	// Bookkeeping for the downmost node of each column of the constraint matrix
+	// Allows linking nodes together in constant time
+	Node **downmost_nodes = new Node*[12];
+	for (int column = 0; column < 12; ++column)
+		downmost_nodes[column] = column_header_nodes[column];
 
+	// Add new nodes row by row
 	for (int row = 0; row < 2; ++row)
 	{
 		for (int column = 0; column < 2; ++column)
@@ -21,43 +27,31 @@ int main()
 				// Constraint1: one number in 'column' and 'row'
 				Node *node_constraint_1 = new Node(row_header_nodes[row_index], column_header_nodes[column * 2 + row]);
 				row_header_nodes[row_index]->AddNodeToRight(node_constraint_1);
-				// Add the node in a new row.
-				Node *down_most_node = column_header_nodes[column * 2 + row];
-				while (down_most_node->down())
-					down_most_node = down_most_node->down();
-				down_most_node->AddNodeDown(node_constraint_1);
+				downmost_nodes[column * 2 + row]->AddNodeDown(node_constraint_1);
+				downmost_nodes[column * 2 + row] = node_constraint_1;
 
 				// Constraint2: 'number' must appear in 'row'
 				Node *node_constraint_2 = new Node(row_header_nodes[row_index], column_header_nodes[number * 2 + row + 4]);
-				down_most_node = column_header_nodes[number * 2 + row + 4];
-				while (down_most_node->down())
-					down_most_node = down_most_node->down();
-				down_most_node->AddNodeDown(node_constraint_2);
+				downmost_nodes[number * 2 + row + 4]->AddNodeDown(node_constraint_2);
+				downmost_nodes[number * 2 + row + 4] = node_constraint_2;
 				node_constraint_1->AddNodeToRight(node_constraint_2);
 
 				// Constraint3: 'number' must appear in 'column'
 				Node *node_constraint_3 = new Node(row_header_nodes[row_index], column_header_nodes[number * 2 + column + 8]);
-				down_most_node = column_header_nodes[number * 2 + column + 8];
-				while (down_most_node->down())
-					down_most_node = down_most_node->down();
-				down_most_node->AddNodeDown(node_constraint_3);
+				downmost_nodes[number * 2 + column + 8]->AddNodeDown(node_constraint_3);
+				downmost_nodes[number * 2 + column + 8] = node_constraint_3;
 				node_constraint_2->AddNodeToRight(node_constraint_3);
 			}
 		}
 	}
 
 	constraint_matrix->Print();
-	std::cout << "cover columns 0 and 4\n";
 
-	column_header_nodes[2]->Cover();
-	column_header_nodes[4]->Cover();
-	constraint_matrix->Print();
+	std::vector<int> solution;
+	std::vector<std::vector<int>> solutions;
+	constraint_matrix->ExactCover(solutions);
 
-	std::cout << "cover columns 4 and 2\n";
-	column_header_nodes[4]->Uncover();
-	column_header_nodes[2]->Uncover();
-	constraint_matrix->Print();
-
+	std::cout << constraint_matrix->IsCandidateSolution() << " " << constraint_matrix->ExactCoverFound() << std::endl;
 	SudokuGrid grid;
 #if 0
 	grid.SetRow(0, { 4, 9, 8, 0, 0, 0, 6, 2, 0 });
