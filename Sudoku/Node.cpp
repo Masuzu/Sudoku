@@ -88,6 +88,7 @@ void ColumnHeaderNode::Uncover()
 }
 
 ConstraintMatrix::ConstraintMatrix(unsigned int num_rows, unsigned int num_columns)
+	: num_rows_(num_rows), num_columns_(num_columns)
 {
 	if (!num_rows || !num_columns)
 		exit(-1);
@@ -114,6 +115,30 @@ ConstraintMatrix::ConstraintMatrix(unsigned int num_rows, unsigned int num_colum
 	}
 }
 
+ConstraintMatrix::~ConstraintMatrix()
+{
+	// Delete the nodes row by row
+	for (int i = 0; i < num_rows_; ++i)
+	{
+		Node *n = row_header_nodes_[i]->right();
+		Node *node_to_delete;
+		while (n)
+		{
+			node_to_delete = n;
+			n = n->right();
+			delete node_to_delete;
+		}
+		delete row_header_nodes_[i];
+	}
+	for (int i = 0; i < num_columns_; ++i)
+		delete column_header_nodes_[i];
+
+	delete[] row_header_nodes_;
+	delete root_row_header_node;
+	delete[] column_header_nodes_;
+	delete root_column_header_node;
+}
+
 void ConstraintMatrix::Print()
 {
 	if (!root_column_header_node->right())	// There are no columns
@@ -136,7 +161,7 @@ void ConstraintMatrix::Print()
 					if (!node)
 						break;
 				}
-				if (!node)
+				if (!node)	// No more nodes in the row. Fill in the remaining columns with '=' symbols.
 				{
 					if (!column_header_node->is_covered())
 						std::cout << "=";
@@ -248,7 +273,7 @@ void ConstraintMatrix::Backtrack(std::vector<int> &solution, std::vector<std::ve
 		}
 		column_header_node = reinterpret_cast<ColumnHeaderNode*>(column_header_node->right());
 	}
-	// Remove a row from 'column_to_cover' and repeat the process until
+	// Remove a row from 'column_to_cover' and repeat the process until a solution is found or we have to unmake the last choice
 	Node *node = column_to_cover->down();
 	while (node)
 	{
@@ -265,6 +290,7 @@ void ConstraintMatrix::Backtrack(std::vector<int> &solution, std::vector<std::ve
 
 bool ConstraintMatrix::ExactCoverFound()
 {
+	// Each time a column (constraint) is covered, it is removed
 	return(!root_column_header_node->right());
 }
 

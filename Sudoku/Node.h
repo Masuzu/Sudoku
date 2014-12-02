@@ -80,12 +80,15 @@ private:
 	// row_header_nodes_[i] points to the first node in the row i of the constraint matrix representing the exact cover problem
 	RowHeaderNode **row_header_nodes_;
 	int num_iterations_ = 0;
+	int num_rows_;
+	int num_columns_;
 
 	bool Backtrack(std::vector<int> &solution);
 	void Backtrack(std::vector<int> &solution, std::vector<std::vector<int>> &solutions);
 
 public:
 	ConstraintMatrix(unsigned int num_rows, unsigned int num_columns);
+	~ConstraintMatrix();
 	void Print();
 	void RemoveRow(unsigned int row);
 	void InsertBackRow(unsigned int row);

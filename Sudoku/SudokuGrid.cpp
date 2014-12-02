@@ -240,7 +240,6 @@ void SudokuGrid::SolveWithDLX()
 		cells_[cells[row].row][cells[row].column] = cells[row].number;
 	num_iterations_ = constraint_matrix->num_iterations();
 
-	// TODO: Free momory
 	delete constraint_matrix;
 }
 
